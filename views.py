@@ -19,7 +19,6 @@ class RequestUser(APIView):
   def post(self, request, format=None):
     #Check if user exists
     data = JSONParser().parse(request)
-    print(data)
     name = data['user']['name']
     if User.objects.filter(name = name).exists():
       user = User.objects.get(name = name)
@@ -29,9 +28,8 @@ class RequestUser(APIView):
       #User does not exist. Create a new user and bag 
       bag = Bag.objects.create()
       bag.save()
-      data['bag'] = bag.id
-      print(data)
-      serializer = UserSerializer(data=data)
+      data['user']['bag'] = bag.id
+      serializer = UserSerializer(data=data['user'])
 
       if serializer.is_valid():
         serializer.save()
@@ -46,7 +44,7 @@ class SubmitFcmToken(APIView):
     u_id = data['user']['id']
     token_body = data['FcmToken']['body']
 
-    if u_id and token_body and User.objects.filer(id = u_id).exists():
+    if u_id and token_body and User.objects.filter(id = u_id).exists() and not FcmToken.objects.filter(body = token_body).exists():
       token_dict = {
         'FcmToken': {
           'body': token_body,
